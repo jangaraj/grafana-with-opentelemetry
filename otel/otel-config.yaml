@@ -1,0 +1,38 @@
+extensions:
+  # standard healthcheck
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+receivers:
+  # OTLP receiver
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch/otlp-traces:
+    send_batch_size: 8192
+    timeout: 1s
+    send_batch_max_size: 0
+
+exporters:
+  # jaeger
+  jaeger/traces:
+    endpoint: jaeger:14250
+    tls:
+      insecure: true
+
+service:
+  extensions: [health_check]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch/otlp-traces]
+      exporters: [jaeger/traces]
+  telemetry:
+    metrics:
+      address: 0.0.0.0:8888
+      level: basic

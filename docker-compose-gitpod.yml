@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - 16686:16686 
+
+  otel:
+    container_name: otel
+    image: otel/opentelemetry-collector-contrib:latest
+    volumes:
+      - ./otel/otel-config.yaml:/etc/otel-config.yaml
+    command:
+      '--config=/etc/otel-config.yaml'
+    environment:
+      LOGSPOUT: ignore
+    depends_on:
+      - jaeger
+        
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:9.3.0
+    volumes:
+      - ./grafana/grafana.ini:/etc/grafana/grafana.ini
+    ports:
+      - 3000:3000
+    environment:
+        TRACING.OPENTELEMETRY.OTLP_ADDRESS: "otel:4317"
+        TRACING.OPENTELEMETRY_OTLP_PROPAGATION: w3c
+    depends_on:
+      - jaeger
+      - otel

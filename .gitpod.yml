@@ -1,0 +1,12 @@
+ports:
+  - port: 3000  # grafana
+    onOpen: open-browser
+    visibility: public
+  - port: 16686 # jaeger
+    onOpen: open-browser
+    visibility: public
+
+tasks:    
+  - name: docker-compose
+    init:
+      docker-compose -f docker-compose-gitpod.yml up && docker logs -f grafana
